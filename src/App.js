@@ -1,10 +1,11 @@
 import React from 'react';
-import {config, GluestackUIProvider, Text} from '@gluestack-ui/themed';
+import {config, GluestackUIProvider} from '@gluestack-ui/themed';
+import StoryScreen from './screens/StoryScreen';
 
 const App = () => {
   return (
     <GluestackUIProvider config={config.theme}>
-      <Text>Hello World!</Text>
+      <StoryScreen />
     </GluestackUIProvider>
   );
 };
