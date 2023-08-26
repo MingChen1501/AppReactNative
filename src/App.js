@@ -1,11 +1,14 @@
 import React from 'react';
 import {config, GluestackUIProvider} from '@gluestack-ui/themed';
-import StoryScreen from './screens/StoryScreen';
+import {NavigationContainer} from '@react-navigation/native';
+import AppNavigator from './navigation/AppNavigator';
 
 const App = () => {
   return (
     <GluestackUIProvider config={config.theme}>
-      <StoryScreen />
+      <NavigationContainer>
+        <AppNavigator />
+      </NavigationContainer>
     </GluestackUIProvider>
   );
 };
