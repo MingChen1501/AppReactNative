@@ -1,7 +1,23 @@
 import {useEffect, useState} from 'react';
 
 const UseDataFetching = url => {
-  const [data, setData] = useState({id: '', title: '', thumbnail: ''});
+  const [data, setData] = useState({
+    id: '',
+    title: '',
+    thumbnail: '',
+    pages: [
+      {
+        id: '',
+        page_numbers: '',
+        texts: [
+          {
+            id: '',
+            text: '',
+          },
+        ],
+      },
+    ],
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const fetchData = async () => {
