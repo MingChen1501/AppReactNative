@@ -20,15 +20,13 @@ const StoryScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [state, refreshState] = UseDataFetching(`${uri}/api/stories`);
   // chưa nghĩ ra tên nào OK hơn
-  //
   const handleRefresh = async () => {
     setRefreshing(true);
     refreshState();
     setRefreshing(false);
   };
   const navigateToDetail = item => {
-    navigation.navigate('StoryDetail');
-    console.log(item);
+    navigation.navigate('StoryDetail', item);
   };
   const renderItem = (
     {item: {id, title, thumbnail, language, type}},
