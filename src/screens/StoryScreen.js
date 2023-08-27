@@ -34,27 +34,23 @@ const StoryScreen = () => {
   ) => {
     return (
       <TouchableOpacity
+        style={{margin: 7}}
         onPress={() => callback({id, title, thumbnail, language, type})}>
-        <VStack space="4xl">
+        <VStack space="2xl">
           <Center>
             <Image
-              size="2xl"
+              size="xl"
               borderRadius="$md"
               source={{
                 uri: thumbnail,
               }}
             />
-          </Center>
-          <Box space="md">
-            <Heading size="md" isTruncated={true}>
-              {title}
-            </Heading>
             <Text size="sm">
               {language} - {type}
             </Text>
-          </Box>
-          <Divider my="$0.5" />
+          </Center>
         </VStack>
+        <Divider my="$0.5" />
       </TouchableOpacity>
     );
   };
@@ -73,6 +69,7 @@ const StoryScreen = () => {
         data={state.data}
         renderItem={({item}) => renderItem({item}, navigateToDetail)}
         keyExtractor={item => item.id}
+        numColumns={5}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
