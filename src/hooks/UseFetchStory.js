@@ -19,7 +19,7 @@ const UseDataFetching = url => {
     ],
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState({});
   const fetchData = async () => {
     try {
       const response = await fetch(url);
