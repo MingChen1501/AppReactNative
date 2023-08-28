@@ -16,13 +16,10 @@ import UseDataFetching from '../hooks/UseFetchStory';
 
 const StoryDetailScreen = item => {
   const dataProps = item.route.params;
-  const [{data, isLoading, error}, fetchData] = UseDataFetching(
+  const [{data, isLoading, error}] = UseDataFetching(
     `${uri}/api/stories/${dataProps.id}?embed=pages`,
   );
-  useEffect(() => {
-    fetchData();
-    console.log('StoryDetailScreen', error);
-  }, [error]);
+  console.log('StoryDetailScreen', error);
   if (isLoading) {
     return (
       <Center>
