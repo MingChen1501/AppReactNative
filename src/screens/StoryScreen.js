@@ -4,12 +4,11 @@ import {
   Center,
   Divider,
   Fab,
-  FabLabel,
-  Heading,
+  FabLabel, Heading,
   Image,
   Text,
   VStack,
-} from '@gluestack-ui/themed';
+} from "@gluestack-ui/themed";
 import {FlatList, RefreshControl, TouchableOpacity} from 'react-native';
 import UseDataFetching from '../hooks/UseFetchStory';
 import {uri} from '../utils/Host';
@@ -20,6 +19,7 @@ const StoryScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [state, refreshState] = UseDataFetching(`${uri}/api/stories`);
   // chưa nghĩ ra tên nào OK hơn
+  console.log('StoryScreen', state.error);
   const handleRefresh = async () => {
     setRefreshing(true);
     refreshState();
@@ -45,6 +45,9 @@ const StoryScreen = () => {
                 uri: thumbnail,
               }}
             />
+            <Heading size="sm" color="$black" width={100} isTruncated={true}>
+              {title}
+            </Heading>
             <Text size="sm">
               {language} - {type}
             </Text>
