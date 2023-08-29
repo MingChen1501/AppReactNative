@@ -4,25 +4,37 @@ import {
   Center,
   Divider,
   Fab,
-  FabLabel, Heading,
+  FabLabel,
+  Heading,
   Image,
   Text,
   VStack,
-} from "@gluestack-ui/themed";
+} from '@gluestack-ui/themed';
 import {FlatList, RefreshControl, TouchableOpacity} from 'react-native';
-import UseDataFetching from '../hooks/UseFetchStory';
+import UseDataFetching from '../hooks/UseFetch';
 import {uri} from '../utils/Host';
 import {useNavigation} from '@react-navigation/native';
-
+const responsePayload = [
+  {
+    id: null,
+    illustrator_id: null,
+    author_id: null,
+    title: '',
+    language: '',
+    type: '',
+    thumbnail: 'https://via.placeholder.com/640x480.png/0099bb?text=numquam',
+  },
+];
 const StoryScreen = () => {
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = useState(false);
-  const [state, refreshState] = UseDataFetching(`${uri}/api/stories`);
-  // chưa nghĩ ra tên nào OK hơn
-  console.log('StoryScreen', state.error);
+  const [state, refreshState] = UseDataFetching(
+    `${uri}/api/stories`,
+    responsePayload,
+  );
   const handleRefresh = async () => {
     setRefreshing(true);
-    refreshState();
+    await refreshState();
     setRefreshing(false);
   };
   const navigateToDetail = item => {
