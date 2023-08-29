@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {
   Box,
   Button,
@@ -12,14 +12,50 @@ import {
   VStack,
 } from '@gluestack-ui/themed';
 import {uri} from '../utils/Host';
-import UseDataFetching from '../hooks/UseFetchStory';
+import UseDataFetching from '../hooks/UseFetch';
+import {useNavigation} from '@react-navigation/native';
 
+const responsePayload = {
+  id: '',
+  title: '',
+  thumbnail: '',
+  pages: [
+    {
+      id: '',
+      page_numbers: '',
+      texts: [
+        {
+          id: '',
+          text: '',
+        },
+      ],
+    },
+  ],
+};
 const StoryDetailScreen = item => {
+  const navigator = useNavigation();
   const dataProps = item.route.params;
   const [{data, isLoading, error}] = UseDataFetching(
     `${uri}/api/stories/${dataProps.id}?embed=pages`,
+    responsePayload,
   );
-  console.log('StoryDetailScreen', error);
+  const mapPagesToIds = pages => {
+    return pages
+      .sort((p1, p2) => {
+        return p1.page_number - p2.page_number;
+      })
+      .map(page => page.id);
+  };
+  if (error !== null) {
+    return (
+      <Center>
+        <Text>Error</Text>
+      </Center>
+    );
+  }
+  function readingStory() {
+    navigator.navigate('ReadingStory', {pages: mapPagesToIds(data.pages)});
+  }
   if (isLoading) {
     return (
       <Center>
@@ -51,7 +87,8 @@ const StoryDetailScreen = item => {
               variant="solid"
               action="primary"
               isDisabled={false}
-              isFocusVisible={false}>
+              isFocusVisible={false}
+              onPress={() => readingStory()}>
               <ButtonText>Study </ButtonText>
             </Button>
           </VStack>
