@@ -2,6 +2,7 @@ import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import StoryScreen from '../screens/StoryScreen';
 import StoryDetailScreen from '../screens/StoryDetailScreen';
+import ReadingStoryScreen from '../screens/ReadingStoryScreen';
 
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
@@ -9,6 +10,7 @@ const AppNavigator = () => {
     <Stack.Navigator initialRouteName="Story">
       <Stack.Screen name="Story" component={StoryScreen} />
       <Stack.Screen name="StoryDetail" component={StoryDetailScreen} />
+      <Stack.Screen name="ReadingStory" component={ReadingStoryScreen} />
     </Stack.Navigator>
   );
 };
