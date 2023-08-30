@@ -10,7 +10,13 @@ const AppNavigator = () => {
     <Stack.Navigator initialRouteName="Story">
       <Stack.Screen name="Story" component={StoryScreen} />
       <Stack.Screen name="StoryDetail" component={StoryDetailScreen} />
-      <Stack.Screen name="ReadingStory" component={ReadingStoryScreen} />
+      <Stack.Screen
+        name="ReadingStory"
+        options={{
+          headerShown: false,
+        }}
+        component={ReadingStoryScreen}
+      />
     </Stack.Navigator>
   );
 };
