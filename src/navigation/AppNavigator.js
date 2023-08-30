@@ -14,6 +14,7 @@ const AppNavigator = () => {
         name="ReadingStory"
         options={{
           headerShown: false,
+          gestureEnabled: false,
         }}
         component={ReadingStoryScreen}
       />
