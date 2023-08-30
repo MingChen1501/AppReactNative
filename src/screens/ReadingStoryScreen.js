@@ -3,6 +3,10 @@ import {Box, Fab, FabLabel, HStack, Pressable, Text} from '@gluestack-ui/themed'
 import useFetchStory from '../hooks/UseFetch';
 import {uri} from '../utils/Host';
 import Canvas, {Image as CanvasImage} from 'react-native-canvas';
+import {Dimensions, PanResponder} from 'react-native';
+
+
+const { width, height } = Dimensions.get('window');
 const responsePayload = {
   id: 0,
   page_number: 0,
@@ -31,21 +35,43 @@ const ReadingStoryScreen = props => {
     `${uri}/api/pages/${pageId}?embed=texts`,
     responsePayload,
   );
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onPanResponderGrant: (event, gestureState) => {
+      // Handle touch start event
+      console.log('Touch started at:', gestureState.x0, gestureState.y0);
+    },
+    onPanResponderMove: (event, gestureState) => {
+      // Handle touch move event
+      console.log('Touch moved to:', gestureState.moveX, gestureState.moveY);
+    },
+    onPanResponderRelease: (event, gestureState) => {
+      // Handle touch end event
+      console.log('Touch released at:', gestureState.moveX, gestureState.moveY);
+    },
+  });
   const canvasRef = useRef(null);
   useEffect(() => {
     const drawPage = async canvas => {
       const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#000';
-      ctx.font = '20px Arial';
-      ctx.fillText(data.text_configs[contentIndex].text.text, 50, 50);
-      // Draw touchable objects
-      ctx.fillStyle = 'rgba(179,229,252,0.51)';
-      ctx.fillRect(100, 100, 50, 50);
-      ctx.fillStyle = 'rgba(0,0,0,0.83)';
-      ctx.fillRect(200, 100, 50, 50);
+      const textData = data.text_configs[contentIndex];
+      const image = new CanvasImage(canvas);
+      image.src = data.background;
+      console.log(canvas.width, canvas.height);
+      image.addEventListener('load', () => {
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#000';
+        ctx.font = '20px Arial';
+        ctx.fillText(textData.text.text, 50, 50);
+        // Draw touchable objects
+        ctx.fillStyle = 'rgba(0,0,0,1)';
+        ctx.fillRect(50, 50, 50, 50);
+      });
     };
     const canvas = canvasRef.current;
     if (canvas) {
+      canvas.width = width;
+      canvas.height = height;
       drawPage(canvas);
     }
   }, [isLoading, data]);
@@ -64,7 +90,7 @@ const ReadingStoryScreen = props => {
     );
   }
   return (
-    <Box width="100%" height="100%">
+    <Box width="100%" height="100%" {...panResponder.panHandlers}>
       <Canvas
         ref={canvasRef}
         style={{
