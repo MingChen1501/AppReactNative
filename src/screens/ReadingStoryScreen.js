@@ -1,12 +1,18 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Box, Fab, FabLabel, HStack, Pressable, Text} from '@gluestack-ui/themed';
+import {
+  Box,
+  Fab,
+  FabLabel,
+  HStack,
+  Pressable,
+  Text,
+} from '@gluestack-ui/themed';
 import useFetchStory from '../hooks/UseFetch';
 import {uri} from '../utils/Host';
 import Canvas, {Image as CanvasImage} from 'react-native-canvas';
 import {Dimensions, PanResponder} from 'react-native';
 
-
-const { width, height } = Dimensions.get('window');
+const {width, height} = Dimensions.get('window');
 const responsePayload = {
   id: 0,
   page_number: 0,
@@ -38,8 +44,34 @@ const ReadingStoryScreen = props => {
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onPanResponderGrant: (event, gestureState) => {
+      const drawText = async () => {
+        const canvas = canvasRef.current;
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          ctx.font = '16px serif';
+          ctx.clearRect(0, 0, width, height);
+          ctx.fillText(
+            data.text_configs[1].text.text,
+            gestureState.x0,
+            gestureState.y0,
+          );
+          const x = gestureState.x0;
+          const y = gestureState.y0;
+          const textMetrics = await ctx.measureText(
+            data.text_configs[1].text.text,
+          );
+          console.log(textMetrics);
+          setTimeout(() => {
+            const textX = x;
+            const textY = y;
+            const textWidth = textMetrics.width;
+            const textHeight = 30;
+            ctx.clearRect(textX, textY - 20, textWidth, textHeight);
+          }, 3000);
+        }
+      };
       // Handle touch start event
-      console.log('Touch started at:', gestureState.x0, gestureState.y0);
+      drawText();
     },
     onPanResponderMove: (event, gestureState) => {
       // Handle touch move event
@@ -50,14 +82,15 @@ const ReadingStoryScreen = props => {
       console.log('Touch released at:', gestureState.moveX, gestureState.moveY);
     },
   });
+  const backgroundRef = useRef(null);
   const canvasRef = useRef(null);
   useEffect(() => {
     const drawPage = async canvas => {
       const ctx = canvas.getContext('2d');
       const textData = data.text_configs[contentIndex];
+      console.log(canvas.width, canvas.height);
       const image = new CanvasImage(canvas);
       image.src = data.background;
-      console.log(canvas.width, canvas.height);
       image.addEventListener('load', () => {
         ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#000';
@@ -68,13 +101,29 @@ const ReadingStoryScreen = props => {
         ctx.fillRect(50, 50, 50, 50);
       });
     };
+    const drawBackground = async background => {
+      const ctx = background.getContext('2d');
+      const image = new CanvasImage(background);
+      image.src = data.background;
+      image.addEventListener('load', () => {
+        ctx.drawImage(image, 0, 0, background.width, background.height);
+      });
+    };
     const canvas = canvasRef.current;
-    if (canvas) {
+    const backgroundCanvas = backgroundRef.current;
+    if (backgroundCanvas && canvas) {
+      backgroundCanvas.width = width;
+      backgroundCanvas.height = height;
       canvas.width = width;
       canvas.height = height;
-      drawPage(canvas);
+      drawBackground(backgroundCanvas);
     }
-  }, [isLoading, data]);
+    // if (canvas) {
+    //   canvas.width = width;
+    //   canvas.height = height;
+    //   drawPage(canvas);
+    // }
+  }, [isLoading, data, contentIndex]);
   if (data.text_configs.length === 0) {
     return (
       <Box bg="$white" p="$5">
@@ -92,13 +141,10 @@ const ReadingStoryScreen = props => {
   return (
     <Box width="100%" height="100%" {...panResponder.panHandlers}>
       <Canvas
-        ref={canvasRef}
-        style={{
-          width: '100%',
-          height: '100%',
-          backgroundColor: '#fff',
-        }}
+        ref={backgroundRef}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
       />
+      <Canvas ref={canvasRef} style={{width: '100%', height: '100%'}} />
       <Fab
         size="sm"
         placement="top right"
