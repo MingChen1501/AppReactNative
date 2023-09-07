@@ -53,6 +53,9 @@ const ReadingStoryScreen = props => {
           ctx.font = '16px serif';
           clearTimeout(timeoutId);
           ctx.clearRect(0, 0, width, height);
+          const textMetrics = await ctx.measureText(
+            data.text_configs[1].text.text,
+          );
           ctx.fillText(
             data.text_configs[1].text.text,
             gestureState.x0,
@@ -60,15 +63,9 @@ const ReadingStoryScreen = props => {
           );
           const x = gestureState.x0;
           const y = gestureState.y0;
-          const textMetrics = await ctx.measureText(
-            data.text_configs[1].text.text,
-          );
+          strokeRoundRect(x - 5, y - 24, textMetrics.width + 10, 32, 10);
           timeoutId = setTimeout(() => {
-            const textX = x;
-            const textY = y;
-            const textWidth = textMetrics.width;
-            const textHeight = 36;
-            ctx.clearRect(textX - 6, textY - 25, textWidth + 12, textHeight);
+            ctx.clearRect(0, 0, width, height);
           }, 3000);
           function strokeRoundRect(x, y, width, height, radius) {
             ctx.beginPath();
@@ -91,7 +88,6 @@ const ReadingStoryScreen = props => {
             ctx.stroke();
           }
           // Example usage
-          strokeRoundRect(x - 5, y - 24, textMetrics.width + 10, 32, 10);
         }
       };
       // Handle touch start event
