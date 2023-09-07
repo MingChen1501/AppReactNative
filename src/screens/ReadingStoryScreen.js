@@ -7,11 +7,17 @@ import {
   Pressable,
   Text,
 } from '@gluestack-ui/themed';
+import Sound from 'react-native-sound';
 import useFetchStory from '../hooks/UseFetch';
 import {uri} from '../utils/Host';
 import Canvas, {Image as CanvasImage} from 'react-native-canvas';
-import {Dimensions, PanResponder} from 'react-native';
+import {Alert, Dimensions, PanResponder} from 'react-native';
 
+const sound = new Sound(require('../assests/apple.mp3'), error => {
+  if (error) {
+    Alert('sound error');
+  }
+});
 const {width, height} = Dimensions.get('window');
 const responsePayload = {
   id: 0,
@@ -49,43 +55,48 @@ const ReadingStoryScreen = props => {
       const drawText = async () => {
         const canvas = canvasRef.current;
         if (canvas) {
-          const ctx = canvas.getContext('2d');
-          ctx.font = '16px serif';
-          clearTimeout(timeoutId);
-          ctx.clearRect(0, 0, width, height);
-          const textMetrics = await ctx.measureText(
-            data.text_configs[1].text.text,
-          );
-          ctx.fillText(
-            data.text_configs[1].text.text,
-            gestureState.x0,
-            gestureState.y0,
-          );
-          const x = gestureState.x0;
-          const y = gestureState.y0;
-          strokeRoundRect(x - 5, y - 24, textMetrics.width + 10, 32, 10);
-          timeoutId = setTimeout(() => {
+          //TODO: should be check gestureState position in touchable object position
+          if (true) {
+            const ctx = canvas.getContext('2d');
+            ctx.font = '16px serif';
+            clearTimeout(timeoutId);
             ctx.clearRect(0, 0, width, height);
-          }, 3000);
-          function strokeRoundRect(x, y, width, height, radius) {
-            ctx.beginPath();
-            ctx.moveTo(x + radius, y);
-            ctx.lineTo(x + width - radius, y);
-            ctx.arcTo(x + width, y, x + width, y + radius, radius);
-            ctx.lineTo(x + width, y + height - radius);
-            ctx.arcTo(
-              x + width,
-              y + height,
-              x + width - radius,
-              y + height,
-              radius,
+            sound.stop();
+            const textMetrics = await ctx.measureText(
+              data.text_configs[1].text.text,
             );
-            ctx.lineTo(x + radius, y + height);
-            ctx.arcTo(x, y + height, x, y + height - radius, radius);
-            ctx.lineTo(x, y + radius);
-            ctx.arcTo(x, y, x + radius, y, radius);
-            ctx.closePath();
-            ctx.stroke();
+            ctx.fillText(
+              data.text_configs[1].text.text,
+              gestureState.x0,
+              gestureState.y0,
+            );
+            const x = gestureState.x0;
+            const y = gestureState.y0;
+            strokeRoundRect(x - 5, y - 24, textMetrics.width + 10, 32, 10);
+            sound.play();
+            timeoutId = setTimeout(() => {
+              ctx.clearRect(0, 0, width, height);
+            }, 3000);
+            function strokeRoundRect(x, y, width, height, radius) {
+              ctx.beginPath();
+              ctx.moveTo(x + radius, y);
+              ctx.lineTo(x + width - radius, y);
+              ctx.arcTo(x + width, y, x + width, y + radius, radius);
+              ctx.lineTo(x + width, y + height - radius);
+              ctx.arcTo(
+                x + width,
+                y + height,
+                x + width - radius,
+                y + height,
+                radius,
+              );
+              ctx.lineTo(x + radius, y + height);
+              ctx.arcTo(x, y + height, x, y + height - radius, radius);
+              ctx.lineTo(x, y + radius);
+              ctx.arcTo(x, y, x + radius, y, radius);
+              ctx.closePath();
+              ctx.stroke();
+            }
           }
           // Example usage
         }
@@ -119,6 +130,7 @@ const ReadingStoryScreen = props => {
         ctx.fillStyle = '#000';
         ctx.font = '20px Arial';
         ctx.fillText(textData.text.text, 50, 50);
+        sound.play();
       });
     };
     const canvas = canvasRef.current;
