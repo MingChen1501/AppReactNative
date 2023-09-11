@@ -5,8 +5,12 @@ import LoginScreen from '../screens/LoginScreen';
 const Stack = createNativeStackNavigator();
 const UserNavigator = () => {
   return (
-    <Stack.Navigator initialRouteName="Story">
-      <Stack.Screen name="Story" component={LoginScreen} />
+    <Stack.Navigator initialRouteName="Login">
+      <Stack.Screen
+        name="Login"
+        component={LoginScreen}
+        options={{headerShown: false}}
+      />
     </Stack.Navigator>
   );
 };
