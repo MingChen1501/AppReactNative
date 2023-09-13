@@ -9,9 +9,7 @@ import store from './redux/Store';
 const App = () => {
   const isLogged = useSelector(state => state.isLogged);
   const navigator = isLogged ? <AppNavigator /> : <UserNavigator />;
-  useEffect(() => {
-    console.log('isLogged', isLogged);
-  }, [isLogged]);
+  useEffect(() => {}, [isLogged]);
   return (
     <GluestackUIProvider config={config.theme}>
       <NavigationContainer>{navigator}</NavigationContainer>
