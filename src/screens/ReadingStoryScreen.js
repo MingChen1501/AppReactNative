@@ -1,12 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {
-  Box,
-  Fab,
-  FabLabel,
-  HStack,
-  Pressable,
-  Text,
-} from '@gluestack-ui/themed';
+import {Box, Fab, FabLabel, Text} from '@gluestack-ui/themed';
 import Sound from 'react-native-sound';
 import useFetchStory from '../hooks/UseFetch';
 import {uri} from '../utils/Host';
