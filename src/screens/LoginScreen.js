@@ -1,26 +1,20 @@
 import React, {useState} from 'react';
 import {
-  AddIcon,
-  Alert,
-  AlertIcon,
-  AlertText,
   Box,
   Button,
-  ButtonIcon,
   ButtonText,
-  Center,
-  HStack,
-  InfoIcon,
   Input,
   InputInput,
   Spinner,
-  Text,
   VStack,
 } from '@gluestack-ui/themed';
 import Aleart from '../components/Aleart';
 import {uri} from '../utils/Host';
+import {useDispatch} from 'react-redux';
+import {loginSuccess} from '../actions/AuthnAction';
 
 const LoginScreen = () => {
+  const dispatch = useDispatch();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isUsernameInvalid, setIsUsernameInvalid] = useState(false);
@@ -28,6 +22,7 @@ const LoginScreen = () => {
   const [feedback, setFeedback] = useState(null);
   const loadingComponent = <Spinner size={60} />;
   const loginRequest = async () => {
+    //TODO: should be move to new file eg: useFetch
     const request = await fetch(uri + '/api/login', {
       method: 'POST',
       headers: {
@@ -58,6 +53,9 @@ const LoginScreen = () => {
         message: 'login successful, waiting 5 seconds',
         action: 'success',
       });
+      setTimeout(() => {
+        dispatch(loginSuccess(loginState.response.access_token));
+      }, 5000);
     } else if (loginState.httpStatus === 401) {
       showDialog({message: 'username or password is wrong', action: 'error'});
     }
@@ -86,6 +84,7 @@ const LoginScreen = () => {
           isInvalid={isUsernameInvalid}
           isReadOnly={false}>
           <InputInput
+            placeholderTextColor={'#9A9797'}
             placeholder="username"
             onChangeText={text => {
               setUsername(text);
@@ -101,6 +100,7 @@ const LoginScreen = () => {
           isReadOnly={false}>
           <InputInput
             type="password"
+            placeholderTextColor={'#9A9797'}
             placeholder="password"
             onChangeText={setPassword}
           />
