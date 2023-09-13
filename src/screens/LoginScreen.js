@@ -8,7 +8,7 @@ import {
   Spinner,
   VStack,
 } from '@gluestack-ui/themed';
-import Aleart from '../components/Aleart';
+import Feedback from '../components/Feedback';
 import {uri} from '../utils/Host';
 import {useDispatch} from 'react-redux';
 import {loginSuccess} from '../actions/AuthnAction';
@@ -67,7 +67,7 @@ const LoginScreen = () => {
     if (typeof callback === 'function') {
       callback();
     }
-    setFeedback(Aleart(message, action));
+    setFeedback(Feedback(message, action));
   };
 
   const presentFormLogin = () => {
