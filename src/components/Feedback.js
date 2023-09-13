@@ -1,8 +1,6 @@
 import {Alert, AlertIcon, AlertText, Box, InfoIcon} from '@gluestack-ui/themed';
 import React from 'react';
-const Aleart = (message, action) => {
-  console.log(message);
-  console.log(action);
+const Feedback = (message, action) => {
   return (
     <Alert marginTop={'2%'} mx="30%" variant={'accent'} action={action}>
       <AlertIcon as={InfoIcon} mr="$3" />
@@ -11,4 +9,4 @@ const Aleart = (message, action) => {
   );
 };
 
-export default Aleart;
+export default Feedback;
