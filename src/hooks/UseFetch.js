@@ -17,11 +17,11 @@ const UseDataFetching = (url, responsePayload) => {
     try {
       const response = await fetch(url, option);
       const dataFetched = await response.json();
-      setIsLoading(false);
       setData(dataFetched);
-    } catch (e) {
       setIsLoading(false);
+    } catch (e) {
       setError(e);
+      setIsLoading(false);
     }
   };
   useEffect(() => {
