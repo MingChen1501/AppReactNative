@@ -3,8 +3,6 @@ import {
   Box,
   Center,
   Divider,
-  Fab,
-  FabLabel,
   Heading,
   Image,
   Text,
@@ -14,6 +12,9 @@ import {FlatList, RefreshControl, TouchableOpacity} from 'react-native';
 import UseDataFetching from '../hooks/UseFetch';
 import {uri} from '../utils/Host';
 import {useNavigation} from '@react-navigation/native';
+import HomeMenu from '../components/HomeMenu';
+import {useDispatch, useSelector} from 'react-redux';
+import ModalLogout from '../components/Modal';
 const responsePayload = [
   {
     id: null,
@@ -22,12 +23,15 @@ const responsePayload = [
     title: '',
     language: '',
     type: '',
-    thumbnail: 'https://via.placeholder.com/640x480.png/0099bb?text=numquam',
+    thumbnail: '',
   },
 ];
 const StoryScreen = () => {
+  const dispatch = useDispatch();
+  const jwt = useSelector(state => state.jwt);
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = useState(false);
+  const [isShowModalLogout, setIsShowModalLogout] = useState(false);
   const [state, refreshState] = UseDataFetching(
     `${uri}/api/stories`,
     responsePayload,
@@ -39,6 +43,30 @@ const StoryScreen = () => {
   };
   const navigateToDetail = item => {
     navigation.navigate('StoryDetail', item);
+  };
+  const handleCallback = async prop => {
+    if (prop === 'logout') {
+      setIsShowModalLogout(!isShowModalLogout);
+    }
+  };
+  const handleRequestLogout = async () => {
+    const logoutState = await sendLogoutRequest();
+    if (logoutState.httpStatus === 200) {
+      dispatch({type: 'LOGOUT'});
+    } else if (logoutState.httpStatus === 401) {
+      dispatch({type: 'LOGOUT'});
+    }
+  };
+  const sendLogoutRequest = async () => {
+    const option = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + jwt,
+      },
+    };
+    const request = await fetch(uri + '/api/logout', option);
+    return {httpStatus: request.status};
   };
   const renderItem = (
     {item: {id, title, thumbnail, language, type}},
@@ -80,6 +108,7 @@ const StoryScreen = () => {
   }
   return (
     <Box bg="$white" p="$5">
+      <HomeMenu callback={handleCallback} />
       <FlatList
         data={state.data}
         renderItem={({item}) => renderItem({item}, navigateToDetail)}
@@ -89,16 +118,11 @@ const StoryScreen = () => {
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       />
-      <Fab
-        marginBottom={32}
-        size="lg"
-        placement="top right"
-        isHovered={false}
-        isDisabled={false}
-        isPressed={false}
-        onPress={() => console.log('create')}>
-        <FabLabel>Create</FabLabel>
-      </Fab>
+      <ModalLogout
+        isShow={isShowModalLogout}
+        setIsShowModal={boolean => setIsShowModalLogout(boolean)}
+        callbackLogout={handleRequestLogout}
+      />
     </Box>
   );
 };
