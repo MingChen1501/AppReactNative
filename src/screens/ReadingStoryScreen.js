@@ -3,14 +3,9 @@ import {Box, Fab, FabLabel, Text} from '@gluestack-ui/themed';
 import Sound from 'react-native-sound';
 import useFetchStory from '../hooks/UseFetch';
 import {uri} from '../utils/Host';
-import Canvas, {Image as CanvasImage} from 'react-native-canvas';
-import {Alert, Dimensions, PanResponder} from 'react-native';
+import Canvas, {Image as CanvasImage, Path2D} from 'react-native-canvas';
+import {Dimensions, PanResponder} from 'react-native';
 
-const sound = new Sound(require('../assests/apple.mp3'), error => {
-  if (error) {
-    Alert('sound error');
-  }
-});
 const {width, height} = Dimensions.get('window');
 const responsePayload = {
   id: 0,
@@ -33,40 +28,47 @@ const responsePayload = {
 
 const ReadingStoryScreen = props => {
   const pages = props.route.params.pages;
-  const [pageId, setPageId] = useState(pages[0]);
-  const [contentIndex, setContentIndex] = useState([0]);
-  const [pageIndex, setPageindex] = useState(0);
-  const [{data, isLoading, error}] = useFetchStory(
-    `${uri}/api/pages/${pageId}?embed=texts`,
+  const [page, setPage] = useState({id: pages[0], index: 0});
+  const [{data, isLoading, error}, fetchData] = useFetchStory(
+    `${uri}/api/pages/${page.id}?embed=texts`,
     responsePayload,
   );
+  console.log('id: ', page.id);
+  console.log('pages: ', pages);
+  console.log('index: ', page.index);
+  let strokes = [];
   let timeoutId;
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
-    onPanResponderGrant: (event, gestureState) => {
-      console.log('Touch started at:', gestureState.x0, gestureState.y0);
-      const drawText = async () => {
+    onPanResponderGrant: async (_event, gestureState) => {
+      const drawText = async state => {
         const canvas = canvasRef.current;
         if (canvas) {
           //TODO: should be check gestureState position in touchable object position
-          if (true) {
+          if (state.index > -1) {
             const ctx = canvas.getContext('2d');
             ctx.font = '16px serif';
             clearTimeout(timeoutId);
             ctx.clearRect(0, 0, width, height);
-            sound.stop();
             const textMetrics = await ctx.measureText(
-              data.text_configs[1].text.text,
+              data.touchable_objects[state.index].text.text,
             );
             ctx.fillText(
-              data.text_configs[1].text.text,
-              gestureState.x0,
-              gestureState.y0,
+              data.touchable_objects[state.index].text.text,
+              state.position.x0,
+              state.position.y0,
             );
-            const x = gestureState.x0;
-            const y = gestureState.y0;
+            const x = state.position.x0;
+            const y = state.position.y0;
             strokeRoundRect(x - 5, y - 24, textMetrics.width + 10, 32, 10);
-            sound.play();
+            // sound.play();
+            const sound = new Sound(
+              data.touchable_objects[state.index].text.audio.url,
+              null,
+              () => {
+                sound.play();
+              },
+            );
             timeoutId = setTimeout(() => {
               ctx.clearRect(0, 0, width, height);
             }, 3000);
@@ -91,22 +93,61 @@ const ReadingStoryScreen = props => {
               ctx.stroke();
             }
           }
-          // Example usage
         }
       };
-      // Handle touch start event
-      // data.text_configs.map((text, index) => {
-      //   console.log(text);
-      // });
-      drawText();
+      const isPositionInsideStroke = (position, strokesRef) => {
+        return new Promise(resolve => {
+          const canvas = backgroundRef.current;
+          if (canvas) {
+            const ctx = canvas.getContext('2d');
+            const checkStrokes = async () => {
+              for (const element of strokesRef) {
+                const isInPath = await ctx.isPointInPath(
+                  element.ref,
+                  position.x0,
+                  position.y0,
+                );
+                if (isInPath === 'true') {
+                  resolve({isInPath: true, index: element.index, position});
+                  return;
+                }
+              }
+              resolve({isInPath: false, index: -1, position});
+            };
+            checkStrokes();
+          } else {
+            resolve({isInPath: false, index: -1, position});
+          }
+        });
+      };
+      await drawText(await isPositionInsideStroke(gestureState, strokes));
     },
-    onPanResponderMove: (event, gestureState) => {
-      // Handle touch move event
-      console.log('Touch moved to:', gestureState.moveX, gestureState.moveY);
-    },
+    onPanResponderMove: (event, gestureState) => {},
     onPanResponderRelease: (event, gestureState) => {
-      // Handle touch end event
-      console.log('Touch released at:', gestureState.moveX, gestureState.moveY);
+      const {dx, dy} = gestureState;
+      const horizontalSwipe = Math.abs(dx) > Math.abs(dy);
+      if (horizontalSwipe) {
+        const tmp = 0.2 * width;
+        console.log('log', dx, dy);
+        if (dx > tmp) {
+          if (page.index > 0) {
+            console.log('right');
+            setPage({id: pages[page.index - 1], index: page.index - 1});
+          }
+          // fetchData();
+        } else if (dx < -tmp) {
+          if (page.index < pages.length - 1) {
+            console.log('left');
+            setPage({id: pages[page.index + 1], index: page.index + 1});
+          }
+          // fetchData();
+        }
+      } else {
+        const tmp = 0.4 * height;
+        if (dy > tmp) {
+          fetchData();
+        }
+      }
     },
     //TODO:impl swipe to forward or back page
   });
@@ -114,6 +155,7 @@ const ReadingStoryScreen = props => {
   const canvasRef = useRef(null);
   useEffect(() => {
     const drawBackground = async background => {
+      strokes = [];
       const ctx = background.getContext('2d');
       const image = new CanvasImage(background);
       const textData = data.text_configs[0];
@@ -122,8 +164,42 @@ const ReadingStoryScreen = props => {
         ctx.drawImage(image, 0, 0, background.width, background.height);
         ctx.fillStyle = '#000';
         ctx.font = '20px Arial';
-        ctx.fillText(textData.text.text, 50, 50);
-        sound.play();
+        ctx.fillText(textData.text.text, background.width - 661, 93);
+        if (textData.text?.audio?.url) {
+          const audio = new Sound(
+            data.text_configs[0].text.audio.url,
+            null,
+            () => {
+              audio.play(success => {
+                console.log(audio);
+                if (!success) {
+                  console.log('playback failed due to audio decoding errors');
+                } else {
+                  console.log('successfully finished playing');
+                }
+              });
+            },
+          );
+        }
+        const touchableObjectPosition = data.touchable_objects.map(e => {
+          return JSON.parse(e.position);
+        });
+        touchableObjectPosition.map(async (e, index) => {
+          const stroke = new Path2D(ctx);
+          ctx.beginPath();
+          e.forEach(vertice => {
+            const x = (vertice.x * width) / 1700;
+            const y = (vertice.y * height) / 768;
+            if (vertice === e[0]) {
+              stroke.moveTo(x, height - y);
+            } else {
+              stroke.lineTo(x, height - y);
+            }
+          });
+          ctx.closePath();
+          strokes.push({ref: stroke, index: index});
+        });
+        console.log(strokes);
       });
     };
     const canvas = canvasRef.current;
@@ -163,7 +239,7 @@ const ReadingStoryScreen = props => {
         isHovered={false}
         isDisabled={false}
         isPressed={false}
-        onPress={() => console.log('menu')}>
+        onPress={() => {}}>
         <FabLabel>Menu</FabLabel>
       </Fab>
     </Box>
