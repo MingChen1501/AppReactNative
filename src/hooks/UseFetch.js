@@ -26,7 +26,7 @@ const UseDataFetching = (url, responsePayload) => {
   };
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [url]);
   return [{data, isLoading, error}, fetchData];
 };
 
