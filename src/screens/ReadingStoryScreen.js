@@ -142,7 +142,7 @@ const ReadingStoryScreen = props => {
             const canvas = textRef.current;
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, width, height);
-            isLoadedTextContentAudio.sound.stop();
+            isLoadedTextContentAudio?.sound?.stop();
             cancelAnimationFrame(animationFrameId.current);
             setPage({id: pages[page.index - 1], index: page.index - 1});
           }
@@ -151,7 +151,7 @@ const ReadingStoryScreen = props => {
             const canvas = textRef.current;
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, width, height);
-            isLoadedTextContentAudio.sound.stop();
+            isLoadedTextContentAudio?.sound?.stop();
             cancelAnimationFrame(animationFrameId.current);
             setPage({id: pages[page.index + 1], index: page.index + 1});
           }
@@ -159,7 +159,7 @@ const ReadingStoryScreen = props => {
       } else {
         const tmp = 0.4 * height;
         if (dy > tmp) {
-          isLoadedTextContentAudio.sound.stop();
+          isLoadedTextContentAudio?.sound?.stop();
           cancelAnimationFrame(animationFrameId.current);
           setIsRefreshTextContent(!isRefreshTextContent);
         }
@@ -277,7 +277,10 @@ const ReadingStoryScreen = props => {
       textCanvas.height = height;
       drawTextContent(textCanvas);
     }
-    return cancelAnimationFrame(animationFrameId.current);
+    return () => {
+      cancelAnimationFrame(animationFrameId.current);
+      setIsPanResponderEnable(true);
+    };
   }, [isLoadedTextContentAudio, isRefreshTextContent]);
   if (data.text_configs.length === 0) {
     return (
