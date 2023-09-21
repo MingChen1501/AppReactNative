@@ -14,6 +14,7 @@ import {
 import {uri} from '../utils/Host';
 import UseDataFetching from '../hooks/UseFetch';
 import {useNavigation} from '@react-navigation/native';
+import axios from 'axios';
 
 const responsePayload = {
   id: '',
@@ -56,6 +57,47 @@ const StoryDetailScreen = item => {
   function readingStory() {
     navigator.navigate('ReadingStory', {pages: mapPagesToIds(data.pages)});
   }
+  function downloadAndReadingStory() {
+    const downloadResource = async (url, savePath) => {
+      try {
+        const response = await axios.get(url, {
+          responseType: 'arraybuffer',
+        });
+        const resourceData = response.data;
+        console.log(resourceData);
+      } catch (error) {
+        console.log('Error downloading resource:', error);
+      }
+    };
+    const downloadStoryResources = async () => {
+      try {
+        for (const page of mapPagesToIds(data.pages)) {
+          // Step 3: Retrieve page details
+          const pageResponse = await axios.get(
+            `${uri}/api/pages/${page.id}?embed=text`,
+          );
+          const {imageUrl, audioUrl, textUrl, syncTextSoundUrl} =
+            pageResponse.data;
+
+          // Step 5-6: Download and save resources
+          await downloadResource(imageUrl, '/path/to/save/image.jpg');
+          await downloadResource(audioUrl, '/path/to/save/audio.mp3');
+          await downloadResource(textUrl, '/path/to/save/text.txt');
+          await downloadResource(
+            syncTextSoundUrl,
+            '/path/to/save/sync_text_sound.json',
+          );
+        }
+      } catch (error) {
+        console.error('Error downloading story resources:', error);
+      }
+      // navigator.navigate('DownloadAndReadingStory', {
+      //   pages: mapPagesToIds(data.pages),
+      // });
+      console.log('downloadAndReadingStory');
+    };
+  }
+
   if (isLoading) {
     return (
       <Center>
@@ -90,6 +132,15 @@ const StoryDetailScreen = item => {
               isFocusVisible={false}
               onPress={() => readingStory()}>
               <ButtonText>Study </ButtonText>
+            </Button>
+            <Button
+              size="lg"
+              variant="solid"
+              action="primary"
+              isDisabled={false}
+              isFocusVisible={false}
+              onPress={() => downloadAndReadingStory()}>
+              <ButtonText>Download and reading </ButtonText>
             </Button>
           </VStack>
         </HStack>
