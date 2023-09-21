@@ -127,9 +127,8 @@ const ReadingStoryScreen = props => {
           }
         });
       };
-      await drawText(
-        await isPositionInsideStroke(gestureState, strokes.current),
-      );
+      const {x0, y0} = gestureState;
+      await drawText(await isPositionInsideStroke({x0, y0}, strokes.current));
     },
     onPanResponderMove: (event, gestureState) => {},
     onPanResponderRelease: (event, gestureState) => {
@@ -279,7 +278,6 @@ const ReadingStoryScreen = props => {
     }
     return () => {
       cancelAnimationFrame(animationFrameId.current);
-      setIsPanResponderEnable(true);
     };
   }, [isLoadedTextContentAudio, isRefreshTextContent]);
   if (data.text_configs.length === 0) {
