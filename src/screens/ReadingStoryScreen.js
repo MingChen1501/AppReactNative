@@ -28,7 +28,7 @@ const responsePayload = {
 
 const ReadingStoryScreen = props => {
   const pages = props.route.params.pages;
-  const [page, setPage] = useState({id: pages[0], index: 0});
+  const [page, setPage] = useState({id: pages[0].id, index: 0});
   const [isLoadedTextContentAudio, setIsLoadedTextContentAudio] = useState({
     isLoaded: false,
     sound: null,
