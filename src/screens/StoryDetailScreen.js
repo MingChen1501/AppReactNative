@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   Box,
   Button,
@@ -17,8 +17,6 @@ import {useNavigation} from '@react-navigation/native';
 import axios from 'axios';
 import {useSelector} from 'react-redux';
 import RNFS from 'react-native-fs';
-import {encode} from 'base-64';
-import {Buffer} from 'buffer';
 import {fromByteArray} from 'base64-js';
 
 const responsePayload = {
@@ -46,12 +44,19 @@ const StoryDetailScreen = item => {
     `${uri}/api/stories/${dataProps.id}?embed=pages`,
     responsePayload,
   );
+  const storyDownloadedData = useRef([]);
+
   const mapPagesToIds = pages => {
     return pages
       .sort((p1, p2) => {
         return p1.page_number - p2.page_number;
       })
-      .map(page => page.id);
+      .map(page => {
+        let id, page_number;
+        id = page.id;
+        page_number = page.page_number;
+        return {id, page_number};
+      });
   };
   if (error !== null) {
     return (
@@ -69,17 +74,21 @@ const StoryDetailScreen = item => {
       Authorization: 'Bearer ' + jwt,
     },
   };
-  function downloadAndReadingStory() {
-    const downloadResource = async (url, savePath) => {
+  const downloadAndReadingStory = async () => {
+    const downloadResource = async (url, savePath, page) => {
       try {
         const response = await axios.get(url, {
           responseType: 'arraybuffer',
         });
         const imageBuffer = response.data;
         const base64Image = fromByteArray(new Uint8Array(imageBuffer));
+        storyDownloadedData.current.push({
+          pageNumber: page.page_number,
+          base64Image: base64Image,
+        });
         await RNFS.writeFile(savePath, base64Image, 'base64');
-      } catch (error) {
-        console.log('Error downloading resource:', error);
+      } catch (e) {
+        console.error('Error downloading resource:', e);
       }
     };
     const downloadStoryResources = async () => {
@@ -87,7 +96,7 @@ const StoryDetailScreen = item => {
         for (const page of mapPagesToIds(data.pages)) {
           console.log(page);
           const pageResponse = await axios.get(
-            `${uri}/api/pages/${page}?embed=texts`,
+            `${uri}/api/pages/${page.id}?embed=texts`,
             option,
           );
           const {background, audioUrl, textUrl, syncTextSoundUrl} =
@@ -96,6 +105,7 @@ const StoryDetailScreen = item => {
           await downloadResource(
             background,
             `${RNFS.PicturesDirectoryPath}/image${page}.png`,
+            page,
           );
           // await downloadResource(audioUrl, '/path/to/save/audio.mp3');
           // await downloadResource(textUrl, '/path/to/save/text.txt');
@@ -103,14 +113,19 @@ const StoryDetailScreen = item => {
           //   syncTextSoundUrl,
           //   '/path/to/save/sync_text_sound.json',
           // );
+          // console.log('downloaded', storyDownloadedData.current);
         }
-      } catch (error) {
-        console.error('Error downloading story resources:', error);
+      } catch (e) {
+        console.error('Error downloading story resources:', e);
       }
     };
-    downloadStoryResources();
+    storyDownloadedData.current = [];
+    await downloadStoryResources();
+    navigator.navigate('DownloadAndReadingStory', {
+      storyDownloadedData: storyDownloadedData.current,
+    });
     console.log('downloadAndReadingStory');
-  }
+  };
 
   if (isLoading) {
     return (
