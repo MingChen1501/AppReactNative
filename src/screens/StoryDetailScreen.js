@@ -15,6 +15,11 @@ import {uri} from '../utils/Host';
 import UseDataFetching from '../hooks/UseFetch';
 import {useNavigation} from '@react-navigation/native';
 import axios from 'axios';
+import {useSelector} from 'react-redux';
+import RNFS from 'react-native-fs';
+import {encode} from 'base-64';
+import {Buffer} from 'buffer';
+import {fromByteArray} from 'base64-js';
 
 const responsePayload = {
   id: '',
@@ -36,6 +41,7 @@ const responsePayload = {
 const StoryDetailScreen = item => {
   const navigator = useNavigation();
   const dataProps = item.route.params;
+  const jwt = useSelector(state => state.jwt);
   const [{data, isLoading, error}] = UseDataFetching(
     `${uri}/api/stories/${dataProps.id}?embed=pages`,
     responsePayload,
@@ -57,14 +63,21 @@ const StoryDetailScreen = item => {
   function readingStory() {
     navigator.navigate('ReadingStory', {pages: mapPagesToIds(data.pages)});
   }
+  const option = {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + jwt,
+    },
+  };
   function downloadAndReadingStory() {
     const downloadResource = async (url, savePath) => {
       try {
         const response = await axios.get(url, {
           responseType: 'arraybuffer',
         });
-        const resourceData = response.data;
-        console.log(resourceData);
+        const imageBuffer = response.data;
+        const base64Image = fromByteArray(new Uint8Array(imageBuffer));
+        await RNFS.writeFile(savePath, base64Image, 'base64');
       } catch (error) {
         console.log('Error downloading resource:', error);
       }
@@ -72,30 +85,31 @@ const StoryDetailScreen = item => {
     const downloadStoryResources = async () => {
       try {
         for (const page of mapPagesToIds(data.pages)) {
-          // Step 3: Retrieve page details
+          console.log(page);
           const pageResponse = await axios.get(
-            `${uri}/api/pages/${page.id}?embed=text`,
+            `${uri}/api/pages/${page}?embed=texts`,
+            option,
           );
-          const {imageUrl, audioUrl, textUrl, syncTextSoundUrl} =
+          const {background, audioUrl, textUrl, syncTextSoundUrl} =
             pageResponse.data;
-
-          // Step 5-6: Download and save resources
-          await downloadResource(imageUrl, '/path/to/save/image.jpg');
-          await downloadResource(audioUrl, '/path/to/save/audio.mp3');
-          await downloadResource(textUrl, '/path/to/save/text.txt');
+          console.log(background);
           await downloadResource(
-            syncTextSoundUrl,
-            '/path/to/save/sync_text_sound.json',
+            background,
+            `${RNFS.PicturesDirectoryPath}/image${page}.png`,
           );
+          // await downloadResource(audioUrl, '/path/to/save/audio.mp3');
+          // await downloadResource(textUrl, '/path/to/save/text.txt');
+          // await downloadResource(
+          //   syncTextSoundUrl,
+          //   '/path/to/save/sync_text_sound.json',
+          // );
         }
       } catch (error) {
         console.error('Error downloading story resources:', error);
       }
-      // navigator.navigate('DownloadAndReadingStory', {
-      //   pages: mapPagesToIds(data.pages),
-      // });
-      console.log('downloadAndReadingStory');
     };
+    downloadStoryResources();
+    console.log('downloadAndReadingStory');
   }
 
   if (isLoading) {

@@ -1,5 +1,5 @@
 const protocol = 'http';
-const ip = '192.168.0.102';
+const ip = '192.168.1.94';
 const port = '8000';
 const uri = `${protocol}://${ip}:${port}`;
 
