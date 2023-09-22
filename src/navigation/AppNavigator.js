@@ -3,6 +3,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import StoryScreen from '../screens/StoryScreen';
 import StoryDetailScreen from '../screens/StoryDetailScreen';
 import ReadingStoryScreen from '../screens/ReadingStoryScreen';
+import DownloadAndReadingStoryScreen from '../screens/DownloadAndReadingStory';
 
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
@@ -17,6 +18,14 @@ const AppNavigator = () => {
           gestureEnabled: false,
         }}
         component={ReadingStoryScreen}
+      />
+      <Stack.Screen
+        name="DownloadAndReadingStory"
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
+        }}
+        component={DownloadAndReadingStoryScreen}
       />
     </Stack.Navigator>
   );
